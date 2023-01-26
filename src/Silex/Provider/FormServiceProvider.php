@@ -13,6 +13,7 @@ namespace Silex\Provider;
 
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
+use RuntimeException;
 use Symfony\Component\Form\Extension\Csrf\CsrfExtension;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension as FormValidatorExtension;
@@ -30,7 +31,7 @@ class FormServiceProvider implements ServiceProviderInterface
     public function register(Container $app)
     {
         if (!class_exists('Locale')) {
-            throw new \RuntimeException('You must either install the PHP intl extension or the Symfony Intl Component to use the Form extension.');
+            throw new RuntimeException('You must either install the PHP intl extension or the Symfony Intl Component to use the Form extension.');
         }
 
         $app['form.types'] = function ($app) {
@@ -47,7 +48,7 @@ class FormServiceProvider implements ServiceProviderInterface
 
         $app['form.extension.csrf'] = function ($app) {
             if (isset($app['translator'])) {
-                $translationDomain = isset($app['validator.translation_domain']) ? $app['validator.translation_domain'] : null;
+                $translationDomain = $app['validator.translation_domain'] ?? null;
 
                 return new CsrfExtension($app['csrf.token_manager'], $app['translator'], $translationDomain);
             }

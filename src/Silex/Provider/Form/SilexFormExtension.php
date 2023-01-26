@@ -52,7 +52,7 @@ class SilexFormExtension implements FormExtensionInterface
 
     public function getTypeExtensions($name)
     {
-        return isset($this->typeExtensions[$name]) ? $this->typeExtensions[$name] : [];
+        return $this->typeExtensions[$name] ?? [];
     }
 
     public function hasTypeExtensions($name)
@@ -105,7 +105,15 @@ class SilexFormExtension implements FormExtensionInterface
                 }
                 $extension = $this->app[$extension];
             }
-            $this->typeExtensions[$extension->getExtendedType()][] = $extension;
+
+            if(method_exists($extension, 'getExtendedTypes')) {
+                foreach($extension::getExtendedTypes() as $type) {
+                    $this->typeExtensions[$type][] = $extension;
+                }
+            }
+            elseif(method_exists($extension, 'getExtendedType')) {
+                $this->typeExtensions[$extension->getExtendedType()][] = $extension;
+            }
         }
     }
 

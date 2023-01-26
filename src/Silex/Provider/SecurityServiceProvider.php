@@ -11,6 +11,7 @@
 
 namespace Silex\Provider;
 
+use LogicException;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Silex\Application;
@@ -20,12 +21,12 @@ use Silex\Api\EventListenerProviderInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestMatcher;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Encoder\NativePasswordEncoder;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\User\UserChecker;
 use Symfony\Component\Security\Core\User\InMemoryUserProvider;
 use Symfony\Component\Security\Core\Encoder\EncoderFactory;
 use Symfony\Component\Security\Core\Encoder\MessageDigestPasswordEncoder;
-use Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder;
 use Symfony\Component\Security\Core\Encoder\Pbkdf2PasswordEncoder;
 use Symfony\Component\Security\Core\Authentication\Provider\DaoAuthenticationProvider;
 use Symfony\Component\Security\Core\Authentication\Provider\AnonymousAuthenticationProvider;
@@ -95,11 +96,11 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
 
         $app['user'] = $app->factory(function ($app) {
             if (null === $token = $app['security.token_storage']->getToken()) {
-                return;
+                return null;
             }
 
             if (!is_object($user = $token->getUser())) {
-                return;
+                return null;
             }
 
             return $user;
@@ -129,7 +130,7 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
         };
 
         $app['security.encoder.bcrypt'] = function ($app) {
-            return new BCryptPasswordEncoder($app['security.encoder.bcrypt.cost']);
+            return new NativePasswordEncoder(null, null, $app['security.encoder.bcrypt.cost'], PASSWORD_BCRYPT);
         };
 
         $app['security.encoder.pbkdf2'] = function ($app) {
@@ -167,8 +168,8 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
             return new ChannelListener(
                 $app['security.access_map'],
                 new RetryAuthenticationEntryPoint(
-                    isset($app['request.http_port']) ? $app['request.http_port'] : 80,
-                    isset($app['request.https_port']) ? $app['request.https_port'] : 443
+                    $app['request.http_port'] ?? 80,
+                    $app['request.https_port'] ?? 443
                 ),
                 $app['logger']
             );
@@ -219,13 +220,13 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
             $configs = [];
             foreach ($app['security.firewalls'] as $name => $firewall) {
                 $entryPoint = null;
-                $pattern = isset($firewall['pattern']) ? $firewall['pattern'] : null;
-                $users = isset($firewall['users']) ? $firewall['users'] : [];
-                $security = isset($firewall['security']) ? (bool) $firewall['security'] : true;
-                $stateless = isset($firewall['stateless']) ? (bool) $firewall['stateless'] : false;
-                $context = isset($firewall['context']) ? $firewall['context'] : $name;
-                $hosts = isset($firewall['hosts']) ? $firewall['hosts'] : null;
-                $methods = isset($firewall['methods']) ? $firewall['methods'] : null;
+                $pattern = $firewall['pattern'] ?? null;
+                $users = $firewall['users'] ?? [];
+                $security = !isset($firewall['security']) || (bool) $firewall['security'];
+                $stateless = isset($firewall['stateless']) && (bool) $firewall['stateless'];
+                $context = $firewall['context'] ?? $name;
+                $hosts = $firewall['hosts'] ?? null;
+                $methods = $firewall['methods'] ?? null;
                 unset($firewall['pattern'], $firewall['users'], $firewall['security'], $firewall['stateless'], $firewall['context'], $firewall['methods'], $firewall['hosts']);
                 $protected = false === $security ? false : count($firewall);
                 $listeners = ['security.channel_listener'];
@@ -268,12 +269,12 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
                         }
 
                         if (!isset($app['security.authentication_listener.factory.'.$type])) {
-                            throw new \LogicException(sprintf('The "%s" authentication entry is not registered.', $type));
+                            throw new LogicException(sprintf('The "%s" authentication entry is not registered.', $type));
                         }
 
                         $options['stateless'] = $stateless;
 
-                        list($providerId, $listenerId, $entryPointId, $position) = $app['security.authentication_listener.factory.'.$type]($name, $options);
+                        [$providerId, $listenerId, $entryPointId, $position] = $app['security.authentication_listener.factory.'.$type]($name, $options);
 
                         if (null !== $entryPointId) {
                             $entryPoint = $entryPointId;
@@ -358,8 +359,7 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
                 $app['security.token_storage'],
                 $app['security.access_manager'],
                 $app['security.access_map'],
-                $app['security.authentication_manager'],
-                $app['logger']
+                $app['security.authentication_manager']
             );
         };
 
@@ -380,7 +380,7 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
                     ];
                     $rule[0] = new RequestMatcher($rule[0]['path'], $rule[0]['host'], $rule[0]['methods'], $rule[0]['ips'], $rule[0]['attributes'], $rule[0]['schemes']);
                 }
-                $map->add($rule[0], (array) $rule[1], isset($rule[2]) ? $rule[2] : null);
+                $map->add($rule[0], (array) $rule[1], $rule[2] ?? null);
             }
 
             return $map;
@@ -500,11 +500,11 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
             return function () use ($app, $name, $options, $that) {
                 $that->addFakeRoute(
                     'match',
-                    $tmp = isset($options['check_path']) ? $options['check_path'] : '/login_check',
+                    $tmp = $options['check_path'] ?? '/login_check',
                     str_replace('/', '_', ltrim($tmp, '/'))
                 );
 
-                $class = isset($options['listener_class']) ? $options['listener_class'] : 'Symfony\\Component\\Security\\Http\\Firewall\\UsernamePasswordFormAuthenticationListener';
+                $class = $options['listener_class'] ?? 'Symfony\\Component\\Security\\Http\\Firewall\\UsernamePasswordFormAuthenticationListener';
 
                 if (!isset($app['security.authentication.success_handler.'.$name])) {
                     $app['security.authentication.success_handler.'.$name] = $app['security.authentication.success_handler._proto']($name, $options);
@@ -556,7 +556,7 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
             return function () use ($name, $options, $app) {
                 return new DefaultLogoutSuccessHandler(
                     $app['security.http_utils'],
-                    isset($options['target_url']) ? $options['target_url'] : '/'
+                    $options['target_url'] ?? '/'
                 );
             };
         });
@@ -565,7 +565,7 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
             return function () use ($app, $name, $options, $that) {
                 $that->addFakeRoute(
                     'get',
-                    $tmp = isset($options['logout_path']) ? $options['logout_path'] : '/logout',
+                    $tmp = $options['logout_path'] ?? '/logout',
                     str_replace('/', '_', ltrim($tmp, '/'))
                 );
 
@@ -581,7 +581,7 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
                     isset($options['with_csrf']) && $options['with_csrf'] && isset($app['csrf.token_manager']) ? $app['csrf.token_manager'] : null
                 );
 
-                $invalidateSession = isset($options['invalidate_session']) ? $options['invalidate_session'] : true;
+                $invalidateSession = $options['invalidate_session'] ?? true;
                 if (true === $invalidateSession && false === $options['stateless']) {
                     $listener->addHandler(new SessionLogoutHandler());
                 }
@@ -599,8 +599,8 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
                     $name,
                     $app['security.access_manager'],
                     $app['logger'],
-                    isset($options['parameter']) ? $options['parameter'] : '_switch_user',
-                    isset($options['role']) ? $options['role'] : 'ROLE_ALLOWED_TO_SWITCH',
+                    $options['parameter'] ?? '_switch_user',
+                    $options['role'] ?? 'ROLE_ALLOWED_TO_SWITCH',
                     $app['dispatcher']
                 );
             };
@@ -608,8 +608,8 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
 
         $app['security.entry_point.form._proto'] = $app->protect(function ($name, array $options) use ($app) {
             return function () use ($app, $options) {
-                $loginPath = isset($options['login_path']) ? $options['login_path'] : '/login';
-                $useForward = isset($options['use_forward']) ? $options['use_forward'] : false;
+                $loginPath = $options['login_path'] ?? '/login';
+                $useForward = $options['use_forward'] ?? false;
 
                 return new FormAuthenticationEntryPoint($app, $app['security.http_utils'], $loginPath, $useForward);
             };
@@ -632,7 +632,7 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
                 return $app[reset($authenticatorIds)];
             }
             // we have multiple entry points - we must ask them to configure one
-            throw new \LogicException(sprintf(
+            throw new LogicException(sprintf(
                 'Because you have multiple guard configurators, you need to set the "guard.entry_point" key to one of your configurators (%s)',
                 implode(', ', $authenticatorIds)
             ));
@@ -686,7 +686,7 @@ class SecurityServiceProvider implements ServiceProviderInterface, EventListener
     {
         $controllers = $app['controllers_factory'];
         foreach ($this->fakeRoutes as $route) {
-            list($method, $pattern, $name) = $route;
+            [$method, $pattern, $name] = $route;
 
             $controllers->$method($pattern)->run(null)->bind($name);
         }

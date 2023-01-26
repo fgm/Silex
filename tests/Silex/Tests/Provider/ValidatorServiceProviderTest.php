@@ -29,7 +29,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  */
 class ValidatorServiceProviderTest extends TestCase
 {
-    public function testRegister()
+    public function createApplication()
     {
         $app = new Application();
         $app->register(new ValidatorServiceProvider());
@@ -38,7 +38,7 @@ class ValidatorServiceProviderTest extends TestCase
         return $app;
     }
 
-    public function testRegisterWithCustomValidators()
+    public function createApplicationWithCustomValidators()
     {
         $app = new Application();
 
@@ -55,41 +55,39 @@ class ValidatorServiceProviderTest extends TestCase
         return $app;
     }
 
-    /**
-     * @depends testRegisterWithCustomValidators
-     */
-    public function testConstraintValidatorFactory($app)
+    public function testConstraintValidatorFactory()
     {
+        $app = $this->createApplicationWithCustomValidators();
+
         $this->assertInstanceOf('Silex\Provider\Validator\ConstraintValidatorFactory', $app['validator.validator_factory']);
 
         $validator = $app['validator.validator_factory']->getInstance(new Custom());
         $this->assertInstanceOf('Silex\Tests\Provider\ValidatorServiceProviderTest\Constraint\CustomValidator', $validator);
     }
 
-    /**
-     * @depends testRegister
-     */
-    public function testConstraintValidatorFactoryWithExpression($app)
+    public function testConstraintValidatorFactoryWithExpression()
     {
+        $app = $this->createApplication();
+
         $constraint = new Assert\Expression('true');
         $validator = $app['validator.validator_factory']->getInstance($constraint);
         $this->assertInstanceOf('Symfony\Component\Validator\Constraints\ExpressionValidator', $validator);
     }
 
-    /**
-     * @depends testRegister
-     */
-    public function testValidatorServiceIsAValidator($app)
+    public function testValidatorServiceIsAValidator()
     {
+        $app = $this->createApplication();
+
         $this->assertTrue($app['validator'] instanceof ValidatorInterface);
     }
 
     /**
-     * @depends testRegister
      * @dataProvider getTestValidatorConstraintProvider
      */
-    public function testValidatorConstraint($email, $isValid, $nbGlobalError, $nbEmailError, $app)
+    public function testValidatorConstraint($email, $isValid, $nbGlobalError, $nbEmailError)
     {
+        $app = $this->createApplication();
+
         $constraints = new Assert\Collection([
             'email' => [
                 new Assert\NotBlank(),
@@ -201,6 +199,6 @@ class ValidatorServiceProviderTest extends TestCase
         $app->register(new ValidatorServiceProvider());
         $app->register(new TranslationServiceProvider());
 
-        $this->assertInternalType('array', $app['translator.resources']);
+        $this->assertIsArray($app['translator.resources']);
     }
 }

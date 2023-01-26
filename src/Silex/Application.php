@@ -11,15 +11,17 @@
 
 namespace Silex;
 
+use LogicException;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
+use RuntimeException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,7 +43,7 @@ use Silex\Provider\HttpKernelServiceProvider;
  */
 class Application extends Container implements HttpKernelInterface, TerminableInterface
 {
-    const VERSION = '2.3.1-DEV';
+    const VERSION = '2.3.2';
 
     const EARLY_EVENT = 512;
     const LATE_EVENT = -512;
@@ -246,7 +248,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
     {
         $app = $this;
 
-        $this->on(KernelEvents::REQUEST, function (GetResponseEvent $event) use ($callback, $app) {
+        $this->on(KernelEvents::REQUEST, function (RequestEvent $event) use ($callback, $app) {
             if (!$event->isMasterRequest()) {
                 return;
             }
@@ -272,7 +274,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
     {
         $app = $this;
 
-        $this->on(KernelEvents::RESPONSE, function (FilterResponseEvent $event) use ($callback, $app) {
+        $this->on(KernelEvents::RESPONSE, function (ResponseEvent $event) use ($callback, $app) {
             if (!$event->isMasterRequest()) {
                 return;
             }
@@ -281,7 +283,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
             if ($response instanceof Response) {
                 $event->setResponse($response);
             } elseif (null !== $response) {
-                throw new \RuntimeException('An after middleware returned an invalid response value. Must return null or an instance of Response.');
+                throw new RuntimeException('An after middleware returned an invalid response value. Must return null or an instance of Response.');
             }
         }, $priority);
     }
@@ -299,7 +301,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
     {
         $app = $this;
 
-        $this->on(KernelEvents::TERMINATE, function (PostResponseEvent $event) use ($callback, $app) {
+        $this->on(KernelEvents::TERMINATE, function (TerminateEvent $event) use ($callback, $app) {
             call_user_func($app['callback_resolver']->resolveCallback($callback), $event->getRequest(), $event->getResponse(), $app);
         }, $priority);
     }
@@ -450,12 +452,12 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
             $connectedControllers = $controllers->connect($this);
 
             if (!$connectedControllers instanceof ControllerCollection) {
-                throw new \LogicException(sprintf('The method "%s::connect" must return a "ControllerCollection" instance. Got: "%s"', get_class($controllers), is_object($connectedControllers) ? get_class($connectedControllers) : gettype($connectedControllers)));
+                throw new LogicException(sprintf('The method "%s::connect" must return a "ControllerCollection" instance. Got: "%s"', get_class($controllers), is_object($connectedControllers) ? get_class($connectedControllers) : gettype($connectedControllers)));
             }
 
             $controllers = $connectedControllers;
         } elseif (!$controllers instanceof ControllerCollection && !is_callable($controllers)) {
-            throw new \LogicException('The "mount" method takes either a "ControllerCollection" instance, "ControllerProviderInterface" instance, or a callable.');
+            throw new LogicException('The "mount" method takes either a "ControllerCollection" instance, "ControllerProviderInterface" instance, or a callable.');
         }
 
         $this['controllers']->mount($prefix, $controllers);
