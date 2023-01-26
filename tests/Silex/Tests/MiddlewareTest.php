@@ -215,7 +215,7 @@ class MiddlewareTest extends TestCase
             return new Response($request->get('name'));
         });
 
-        $app->match('/', function () use ($app) { throw new \Exception('Should never be executed'); });
+        $app->match('/', function () { throw new \Exception('Should never be executed'); });
 
         $request = Request::create('/?name=Fabien');
         $this->assertEquals('Fabien', $app->handle($request)->getContent());

@@ -12,8 +12,8 @@
 namespace Silex\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Silex\ServiceControllerResolver;
 use Silex\Application;
+use Silex\ServiceControllerResolver;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -27,7 +27,7 @@ class ServiceControllerResolverTest extends Testcase
     private $mockResolver;
     private $resolver;
 
-    public function setup(): void
+    protected function setup(): void
     {
         $this->mockResolver = $this->getMockBuilder('Symfony\Component\HttpKernel\Controller\ControllerResolverInterface')
             ->disableOriginalConstructor()
@@ -44,12 +44,12 @@ class ServiceControllerResolverTest extends Testcase
     {
         $this->mockCallbackResolver->expects($this->once())
             ->method('isValid')
-            ->will($this->returnValue(true));
+            ->willReturn(true);
 
         $this->mockCallbackResolver->expects($this->once())
             ->method('convertCallback')
             ->with('some_service:methodName')
-            ->will($this->returnValue(['callback']));
+            ->willReturn(['callback']);
 
         $this->app['some_service'] = function () { return new \stdClass(); };
 
@@ -67,12 +67,12 @@ class ServiceControllerResolverTest extends Testcase
         $this->mockCallbackResolver->expects($this->once())
             ->method('isValid')
             ->with('some_class::methodName')
-            ->will($this->returnValue(false));
+            ->willReturn(false);
 
         $this->mockResolver->expects($this->once())
             ->method('getController')
             ->with($req)
-            ->will($this->returnValue(123));
+            ->willReturn(123);
 
         $this->assertEquals(123, $this->resolver->getController($req));
     }

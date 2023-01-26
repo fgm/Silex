@@ -12,8 +12,8 @@
 namespace Silex\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpFoundation\Request;
 use Silex\Provider\Routing\LazyRequestMatcher;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * LazyRequestMatcher test case.
@@ -65,7 +65,7 @@ class LazyRequestMatcherTest extends TestCase
         $matcher->expects($this->once())
             ->method('matchRequest')
             ->with($request)
-            ->will($this->returnValue('matcherReturnValue'));
+            ->willReturn('matcherReturnValue');
 
         $matcher = new LazyRequestMatcher(function () use ($matcher) {
             return $matcher;

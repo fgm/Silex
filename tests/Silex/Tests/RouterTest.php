@@ -13,9 +13,9 @@ namespace Silex\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Silex\Application;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Router test cases.
@@ -152,11 +152,11 @@ class RouterTest extends TestCase
     {
         $app = new Application();
 
-        $app->get('/foo', function (Request $request) use ($app) {
+        $app->get('/foo', function (Request $request) {
             return new Response($request->getRequestUri());
         });
 
-        $app->error(function ($e, Request $request, $code) use ($app) {
+        $app->error(function ($e, Request $request, $code) {
             return new Response($request->getRequestUri());
         });
 
@@ -171,7 +171,7 @@ class RouterTest extends TestCase
     {
         $app = new Application();
 
-        $app->get('/foo/', function () use ($app) {
+        $app->get('/foo/', function () {
             return new Response('ok');
         });
 

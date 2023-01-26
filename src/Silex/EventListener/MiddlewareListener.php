@@ -11,12 +11,12 @@
 
 namespace Silex\EventListener;
 
-use Symfony\Component\HttpKernel\KernelEvents;
+use Silex\Application;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Silex\Application;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * Manages the route middlewares.
@@ -46,12 +46,12 @@ class MiddlewareListener implements EventSubscriberInterface
     {
         $request = $event->getRequest();
         $routeName = $request->attributes->get('_route');
-        if (!$route = $this->app['routes']->get($routeName)) {
+        if (null === $routeName || !$route = $this->app['routes']->get($routeName)) {
             return;
         }
 
         foreach ((array) $route->getOption('_before_middlewares') as $callback) {
-            $ret = call_user_func($this->app['callback_resolver']->resolveCallback($callback), $request, $this->app);
+            $ret = \call_user_func($this->app['callback_resolver']->resolveCallback($callback), $request, $this->app);
             if ($ret instanceof Response) {
                 $event->setResponse($ret);
 
@@ -71,12 +71,12 @@ class MiddlewareListener implements EventSubscriberInterface
     {
         $request = $event->getRequest();
         $routeName = $request->attributes->get('_route');
-        if (!$route = $this->app['routes']->get($routeName)) {
+        if (null === $routeName || !$route = $this->app['routes']->get($routeName)) {
             return;
         }
 
         foreach ((array) $route->getOption('_after_middlewares') as $callback) {
-            $response = call_user_func($this->app['callback_resolver']->resolveCallback($callback), $request, $event->getResponse(), $this->app);
+            $response = \call_user_func($this->app['callback_resolver']->resolveCallback($callback), $request, $event->getResponse(), $this->app);
             if ($response instanceof Response) {
                 $event->setResponse($response);
             } elseif (null !== $response) {

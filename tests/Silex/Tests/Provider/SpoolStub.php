@@ -31,7 +31,7 @@ class SpoolStub implements \Swift_Spool
 
     public function isStarted()
     {
-        return count($this->messages) > 0;
+        return \count($this->messages) > 0;
     }
 
     public function queueMessage(\Swift_Mime_Message $message)

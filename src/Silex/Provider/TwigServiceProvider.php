@@ -18,15 +18,15 @@ use Silex\Provider\Twig\RuntimeLoader;
 use Symfony\Bridge\Twig\AppVariable;
 use Symfony\Bridge\Twig\Extension\AssetExtension;
 use Symfony\Bridge\Twig\Extension\DumpExtension;
-use Symfony\Bridge\Twig\Extension\RoutingExtension;
-use Symfony\Bridge\Twig\Extension\TranslationExtension;
 use Symfony\Bridge\Twig\Extension\FormExtension;
-use Symfony\Bridge\Twig\Extension\SecurityExtension;
 use Symfony\Bridge\Twig\Extension\HttpFoundationExtension;
 use Symfony\Bridge\Twig\Extension\HttpKernelExtension;
+use Symfony\Bridge\Twig\Extension\HttpKernelRuntime;
+use Symfony\Bridge\Twig\Extension\RoutingExtension;
+use Symfony\Bridge\Twig\Extension\SecurityExtension;
+use Symfony\Bridge\Twig\Extension\TranslationExtension;
 use Symfony\Bridge\Twig\Extension\WebLinkExtension;
 use Symfony\Bridge\Twig\Form\TwigRendererEngine;
-use Symfony\Bridge\Twig\Extension\HttpKernelRuntime;
 use Symfony\Component\Form\FormRenderer;
 use Symfony\Component\HttpFoundation\UrlHelper;
 use Twig\Environment;
@@ -108,9 +108,7 @@ class TwigServiceProvider implements ServiceProviderInterface
                 }
 
                 if (isset($app['fragment.handler'])) {
-                    $app['fragment.renderer.hinclude']->setTemplating($twig);
-
-                    $twig->addExtension(new HttpKernelExtension($app['fragment.handler']));
+                    $twig->addExtension(new HttpKernelExtension());
                 }
 
                 if (isset($app['assets.packages'])) {
@@ -132,7 +130,7 @@ class TwigServiceProvider implements ServiceProviderInterface
 
                     // add loader for Symfony built-in form templates
                     $reflected = new ReflectionClass('Symfony\Bridge\Twig\Extension\FormExtension');
-                    $path = dirname($reflected->getFileName()).'/../Resources/views/Form';
+                    $path = \dirname($reflected->getFileName()).'/../Resources/views/Form';
                     $app['twig.loader']->addLoader(new FilesystemLoader($path));
                 }
 
@@ -148,8 +146,8 @@ class TwigServiceProvider implements ServiceProviderInterface
 
         $app['twig.loader.filesystem'] = function ($app) {
             $loader = new FilesystemLoader();
-            foreach (is_array($app['twig.path']) ? $app['twig.path'] : [$app['twig.path']] as $key => $val) {
-                if (is_string($key)) {
+            foreach (\is_array($app['twig.path']) ? $app['twig.path'] : [$app['twig.path']] as $key => $val) {
+                if (\is_string($key)) {
                     $loader->addPath($key, $val);
                 } else {
                     $loader->addPath($val);

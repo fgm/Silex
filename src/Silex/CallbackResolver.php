@@ -15,7 +15,7 @@ use Pimple\Container;
 
 class CallbackResolver
 {
-    const SERVICE_PATTERN = "/[A-Za-z0-9\._\-]+:[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*/";
+    public const SERVICE_PATTERN = "/[A-Za-z0-9\._\-]+:[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*/";
 
     private $app;
 
@@ -33,7 +33,7 @@ class CallbackResolver
      */
     public function isValid($name)
     {
-        return is_string($name) && (preg_match(static::SERVICE_PATTERN, $name) || isset($this->app[$name]));
+        return \is_string($name) && (preg_match(static::SERVICE_PATTERN, $name) || isset($this->app[$name]));
     }
 
     /**
@@ -55,7 +55,7 @@ class CallbackResolver
             $callback = $this->app[$name];
         }
 
-        if (!is_callable($callback)) {
+        if (!\is_callable($callback)) {
             throw new \InvalidArgumentException(sprintf('Service "%s" is not callable.', $service));
         }
 

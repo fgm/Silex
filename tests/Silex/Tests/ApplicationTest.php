@@ -12,14 +12,14 @@
 namespace Silex\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Silex\Api\ControllerProviderInterface;
 use Silex\Application;
 use Silex\ControllerCollection;
-use Silex\Api\ControllerProviderInterface;
 use Silex\Route;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\WebLink\GenericLinkProvider;
@@ -242,7 +242,7 @@ class ApplicationTest extends TestCase
             $test->assertEquals('/reached', $request->getRequestUri());
             $middlewareTarget[] = 'before_middleware2_triggered';
         };
-        $beforeMiddleware3 = function (Request $request) use (&$middlewareTarget, $test) {
+        $beforeMiddleware3 = function (Request $request) use (&$middlewareTarget) {
             throw new \Exception('This middleware shouldn\'t run!');
         };
 
@@ -254,7 +254,7 @@ class ApplicationTest extends TestCase
             $test->assertEquals('/reached', $request->getRequestUri());
             $middlewareTarget[] = 'after_middleware2_triggered';
         };
-        $afterMiddleware3 = function (Request $request, Response $response) use (&$middlewareTarget, $test) {
+        $afterMiddleware3 = function (Request $request, Response $response) use (&$middlewareTarget) {
             throw new \Exception('This middleware shouldn\'t run!');
         };
 
@@ -488,7 +488,7 @@ class ApplicationTest extends TestCase
     public function testMountNullException()
     {
         $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage("The \"mount\" method takes either a \"ControllerCollection\" instance, \"ControllerProviderInterface\" instance, or a callable.");
+        $this->expectExceptionMessage('The "mount" method takes either a "ControllerCollection" instance, "ControllerProviderInterface" instance, or a callable.');
 
         $app = new Application();
         $app->mount('/exception', null);
@@ -527,7 +527,7 @@ class ApplicationTest extends TestCase
     public function testGetRouteCollectionWithRouteWithoutController()
     {
         $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage("The \"homepage\" route must have code to run when it matches.");
+        $this->expectExceptionMessage('The "homepage" route must have code to run when it matches.');
 
         $app = new Application();
         unset($app['exception_handler']);
@@ -694,7 +694,7 @@ class FooController
 
     public function barSpecialAction(SpecialApplication $app, $name)
     {
-        return 'Hello '.$app->escape($name).' in '.get_class($app);
+        return 'Hello '.$app->escape($name).' in '.\get_class($app);
     }
 }
 

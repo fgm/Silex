@@ -13,8 +13,8 @@ namespace Silex\Tests\Application;
 
 use PHPUnit\Framework\TestCase;
 use Silex\Provider\SecurityServiceProvider;
-use Symfony\Component\Security\Core\User\User;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\User\User;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>

@@ -15,26 +15,26 @@ use LogicException;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use RuntimeException;
+use Silex\Api\BootableProviderInterface;
+use Silex\Api\ControllerProviderInterface;
+use Silex\Api\EventListenerProviderInterface;
+use Silex\Provider\ExceptionHandlerServiceProvider;
+use Silex\Provider\HttpKernelServiceProvider;
+use Silex\Provider\RoutingServiceProvider;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\HttpKernel\TerminableInterface;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Silex\Api\BootableProviderInterface;
-use Silex\Api\EventListenerProviderInterface;
-use Silex\Api\ControllerProviderInterface;
-use Silex\Provider\ExceptionHandlerServiceProvider;
-use Silex\Provider\RoutingServiceProvider;
-use Silex\Provider\HttpKernelServiceProvider;
+use Symfony\Component\HttpKernel\TerminableInterface;
 
 /**
  * The Silex framework class.
@@ -43,10 +43,10 @@ use Silex\Provider\HttpKernelServiceProvider;
  */
 class Application extends Container implements HttpKernelInterface, TerminableInterface
 {
-    const VERSION = '2.3.2';
+    public const VERSION = '2.3.2';
 
-    const EARLY_EVENT = 512;
-    const LATE_EVENT = -512;
+    public const EARLY_EVENT = 512;
+    public const LATE_EVENT = -512;
 
     protected $providers = [];
     protected $booted = false;
@@ -253,7 +253,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
                 return;
             }
 
-            $ret = call_user_func($app['callback_resolver']->resolveCallback($callback), $event->getRequest(), $app);
+            $ret = \call_user_func($app['callback_resolver']->resolveCallback($callback), $event->getRequest(), $app);
 
             if ($ret instanceof Response) {
                 $event->setResponse($ret);
@@ -279,7 +279,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
                 return;
             }
 
-            $response = call_user_func($app['callback_resolver']->resolveCallback($callback), $event->getRequest(), $event->getResponse(), $app);
+            $response = \call_user_func($app['callback_resolver']->resolveCallback($callback), $event->getRequest(), $event->getResponse(), $app);
             if ($response instanceof Response) {
                 $event->setResponse($response);
             } elseif (null !== $response) {
@@ -302,7 +302,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
         $app = $this;
 
         $this->on(KernelEvents::TERMINATE, function (TerminateEvent $event) use ($callback, $app) {
-            call_user_func($app['callback_resolver']->resolveCallback($callback), $event->getRequest(), $event->getResponse(), $app);
+            \call_user_func($app['callback_resolver']->resolveCallback($callback), $event->getRequest(), $event->getResponse(), $app);
         }, $priority);
     }
 
@@ -402,7 +402,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
      *
      * @return string Escaped text
      */
-    public function escape($text, $flags = ENT_COMPAT, $charset = null, $doubleEncode = true)
+    public function escape($text, $flags = \ENT_COMPAT, $charset = null, $doubleEncode = true)
     {
         return htmlspecialchars($text, $flags, $charset ?: $this['charset'], $doubleEncode);
     }
@@ -427,7 +427,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
      * @param \SplFileInfo|string $file               The file to stream
      * @param int                 $status             The response status code
      * @param array               $headers            An array of response headers
-     * @param null|string         $contentDisposition The type of Content-Disposition to set automatically with the filename
+     * @param string|null         $contentDisposition The type of Content-Disposition to set automatically with the filename
      *
      * @return BinaryFileResponse
      */
@@ -452,11 +452,11 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
             $connectedControllers = $controllers->connect($this);
 
             if (!$connectedControllers instanceof ControllerCollection) {
-                throw new LogicException(sprintf('The method "%s::connect" must return a "ControllerCollection" instance. Got: "%s"', get_class($controllers), is_object($connectedControllers) ? get_class($connectedControllers) : gettype($connectedControllers)));
+                throw new LogicException(sprintf('The method "%s::connect" must return a "ControllerCollection" instance. Got: "%s"', \get_class($controllers), \is_object($connectedControllers) ? \get_class($connectedControllers) : \gettype($connectedControllers)));
             }
 
             $controllers = $connectedControllers;
-        } elseif (!$controllers instanceof ControllerCollection && !is_callable($controllers)) {
+        } elseif (!$controllers instanceof ControllerCollection && !\is_callable($controllers)) {
             throw new LogicException('The "mount" method takes either a "ControllerCollection" instance, "ControllerProviderInterface" instance, or a callable.');
         }
 

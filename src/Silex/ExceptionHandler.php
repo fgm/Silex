@@ -36,8 +36,7 @@ class ExceptionHandler implements EventSubscriberInterface
         $renderer = new HtmlErrorRenderer($this->debug);
         $exception = $renderer->render($event->getThrowable());
 
-        $response = Response
-            ::create(
+        $response = Response::create(
                 $exception->getAsString(),
                 $exception->getStatusCode(),
                 $exception->getHeaders()

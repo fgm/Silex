@@ -11,10 +11,10 @@
 
 namespace Silex\Tests\Provider;
 
-use PHPUnit\Framework\TestCase;
 use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
+use PHPUnit\Framework\TestCase;
 use Silex\Application;
 use Silex\Provider\MonologServiceProvider;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -45,7 +45,7 @@ class MonologServiceProviderTest extends TestCase
     {
         $app = $this->getApplication();
 
-        $app->get('/foo', function () use ($app) {
+        $app->get('/foo', function () {
             return 'foo';
         });
 
@@ -129,7 +129,7 @@ class MonologServiceProviderTest extends TestCase
     {
         $app = $this->getApplication();
 
-        $app->get('/foo', function () use ($app) {
+        $app->get('/foo', function () {
             return new RedirectResponse('/bar', 302);
         });
 
@@ -198,7 +198,7 @@ class MonologServiceProviderTest extends TestCase
     public function testExceptionFiltering()
     {
         $app = new Application();
-        $app->get('/foo', function () use ($app) {
+        $app->get('/foo', function () {
             throw new NotFoundHttpException();
         });
 

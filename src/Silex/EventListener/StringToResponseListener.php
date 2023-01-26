@@ -11,10 +11,10 @@
 
 namespace Silex\EventListener;
 
-use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * Converts string responses to proper Response instances.
@@ -34,9 +34,9 @@ class StringToResponseListener implements EventSubscriberInterface
 
         if (!(
             null === $response
-            || is_array($response)
+            || \is_array($response)
             || $response instanceof Response
-            || (is_object($response) && !method_exists($response, '__toString'))
+            || (\is_object($response) && !method_exists($response, '__toString'))
         )) {
             $event->setResponse(new Response((string) $response));
         }

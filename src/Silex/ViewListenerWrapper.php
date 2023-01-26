@@ -50,7 +50,7 @@ class ViewListenerWrapper
             return;
         }
 
-        $response = call_user_func($callback, $controllerResult, $event->getRequest());
+        $response = \call_user_func($callback, $controllerResult, $event->getRequest());
 
         if ($response instanceof Response) {
             $event->setResponse($response);
@@ -61,9 +61,9 @@ class ViewListenerWrapper
 
     private function shouldRun($callback, $controllerResult)
     {
-        if (is_array($callback)) {
+        if (\is_array($callback)) {
             $callbackReflection = new ReflectionMethod($callback[0], $callback[1]);
-        } elseif (is_object($callback) && !$callback instanceof Closure) {
+        } elseif (\is_object($callback) && !$callback instanceof Closure) {
             $callbackReflection = new ReflectionObject($callback);
             $callbackReflection = $callbackReflection->getMethod('__invoke');
         } else {
@@ -77,15 +77,15 @@ class ViewListenerWrapper
                 ? new ReflectionClass($expectedControllerResult->getType()->getName())
                 : null;
 
-            if (null !== $reflectedClass && (!is_object($controllerResult) || !$reflectedClass->isInstance($controllerResult))) {
+            if (null !== $reflectedClass && (!\is_object($controllerResult) || !$reflectedClass->isInstance($controllerResult))) {
                 return false;
             }
 
-            if ($expectedControllerResult->getType() && 'array' === $expectedControllerResult->getType()->getName() && !is_array($controllerResult)) {
+            if ($expectedControllerResult->getType() && 'array' === $expectedControllerResult->getType()->getName() && !\is_array($controllerResult)) {
                 return false;
             }
 
-            if ($expectedControllerResult->getType() && 'callable' === $expectedControllerResult->getType()->getName() && !is_callable($controllerResult)) {
+            if ($expectedControllerResult->getType() && 'callable' === $expectedControllerResult->getType()->getName() && !\is_callable($controllerResult)) {
                 return false;
             }
         }

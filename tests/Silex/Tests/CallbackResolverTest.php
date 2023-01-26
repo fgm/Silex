@@ -20,7 +20,7 @@ class CallbackResolverTest extends Testcase
     private $app;
     private $resolver;
 
-    public function setup(): void
+    protected function setup(): void
     {
         $this->app = new Container();
         $this->resolver = new CallbackResolver($this->app);
@@ -66,7 +66,7 @@ class CallbackResolverTest extends Testcase
     public function testShouldThrowAnExceptionIfServiceIsNotCallable($name)
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches("/Service \"[a-z_]+\" is not callable./");
+        $this->expectExceptionMessageMatches('/Service "[a-z_]+" is not callable./');
 
         $this->app['non_callable_obj'] = function () { return new \stdClass(); };
         $this->app['non_callable'] = function () { return []; };

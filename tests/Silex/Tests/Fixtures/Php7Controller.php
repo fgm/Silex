@@ -17,6 +17,6 @@ class Php7Controller
 {
     public function typehintedAction(Application $application, string $name)
     {
-        return 'Hello '.$application->escape($name).' in '.get_class($application);
+        return 'Hello '.$application->escape($name).' in '.\get_class($application);
     }
 }

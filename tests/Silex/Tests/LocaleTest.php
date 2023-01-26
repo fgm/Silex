@@ -72,7 +72,7 @@ class LocaleTest extends TestCase
     {
         $app = new Application();
         $app->register(new LocaleServiceProvider());
-        $app->before(function (Request $request) use ($app) { $request->setLocale('fr'); });
+        $app->before(function (Request $request) { $request->setLocale('fr'); });
         $app->get('/embed', function (Request $request) { return $request->getLocale(); });
         $app->get('/', function (Request $request) use ($app) {
             return $request->getLocale().$app->handle(Request::create('/embed'), HttpKernelInterface::SUB_REQUEST)->getContent().$request->getLocale();

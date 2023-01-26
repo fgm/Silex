@@ -14,10 +14,10 @@ namespace Silex\Tests\Provider;
 use DateTimeZone;
 use PHPUnit\Framework\TestCase;
 use Silex\Application;
+use Silex\Provider\AssetServiceProvider;
 use Silex\Provider\CsrfServiceProvider;
 use Silex\Provider\FormServiceProvider;
 use Silex\Provider\TwigServiceProvider;
-use Silex\Provider\AssetServiceProvider;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\WebLink\Link;
 

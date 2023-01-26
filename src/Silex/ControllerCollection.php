@@ -13,8 +13,8 @@ namespace Silex;
 
 use BadMethodCallException;
 use LogicException;
-use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\RouteCollection;
 
 /**
  * Builds Silex controllers.
@@ -68,10 +68,10 @@ class ControllerCollection
      */
     public function mount($prefix, $controllers)
     {
-        if (is_callable($controllers)) {
-            $collection = $this->controllersFactory ? call_user_func($this->controllersFactory) : new static(new Route(), new RouteCollection());
+        if (\is_callable($controllers)) {
+            $collection = $this->controllersFactory ? \call_user_func($this->controllersFactory) : new static(new Route(), new RouteCollection());
             $collection->defaultRoute = clone $this->defaultRoute;
-            call_user_func($controllers, $collection);
+            \call_user_func($controllers, $collection);
             $controllers = $collection;
         } elseif (!$controllers instanceof self) {
             throw new LogicException('The "mount" method takes either a "ControllerCollection" instance or callable.');
@@ -183,13 +183,13 @@ class ControllerCollection
     public function __call($method, $arguments)
     {
         if (!method_exists($this->defaultRoute, $method)) {
-            throw new BadMethodCallException(sprintf('Method "%s::%s" does not exist.', get_class($this->defaultRoute), $method));
+            throw new BadMethodCallException(sprintf('Method "%s::%s" does not exist.', \get_class($this->defaultRoute), $method));
         }
 
-        call_user_func_array([$this->defaultRoute, $method], $arguments);
+        \call_user_func_array([$this->defaultRoute, $method], $arguments);
 
         foreach ($this->controllers as $controller) {
-            call_user_func_array([$controller, $method], $arguments);
+            \call_user_func_array([$controller, $method], $arguments);
         }
 
         return $this;

@@ -17,8 +17,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 class LazyDispatcherTest extends TestCase
 {
-    /** @test */
-    public function beforeMiddlewareShouldNotCreateDispatcherEarly()
+    public function testBeforeMiddlewareShouldNotCreateDispatcherEarly()
     {
         $dispatcherCreated = false;
 
@@ -39,8 +38,7 @@ class LazyDispatcherTest extends TestCase
         $this->assertTrue($dispatcherCreated);
     }
 
-    /** @test */
-    public function eventHelpersShouldDirectlyAddListenersAfterBoot()
+    public function testEventHelpersShouldDirectlyAddListenersAfterBoot()
     {
         $app = new Application();
 

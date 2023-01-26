@@ -13,14 +13,14 @@ namespace Silex\Tests\Provider;
 
 use LogicException;
 use Silex\Application;
-use Silex\WebTestCase;
 use Silex\Provider\SecurityServiceProvider;
 use Silex\Provider\SessionServiceProvider;
 use Silex\Provider\ValidatorServiceProvider;
+use Silex\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelBrowser;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * SecurityServiceProvider.
@@ -384,7 +384,7 @@ class SecurityServiceProviderTest extends WebTestCase
         $app = new Application();
         $app->register(new SessionServiceProvider());
 
-        $app = call_user_func([$this, 'add'.ucfirst($authenticationMethod).'Authentication'], $app);
+        $app = \call_user_func([$this, 'add'.ucfirst($authenticationMethod).'Authentication'], $app);
 
         $app['session.test'] = true;
 
@@ -429,7 +429,7 @@ class SecurityServiceProviderTest extends WebTestCase
         $app->get('/', function () use ($app) {
             $user = $app['security.token_storage']->getToken()->getUser();
 
-            $content = is_object($user) ? $user->getUsername() : 'ANONYMOUS';
+            $content = \is_object($user) ? $user->getUsername() : 'ANONYMOUS';
 
             if ($app['security.authorization_checker']->isGranted('IS_AUTHENTICATED_FULLY')) {
                 $content .= 'AUTHENTICATED';
@@ -442,7 +442,7 @@ class SecurityServiceProviderTest extends WebTestCase
             return $content;
         });
 
-        $app->get('/admin', function () use ($app) {
+        $app->get('/admin', function () {
             return 'admin';
         });
 
@@ -473,7 +473,7 @@ class SecurityServiceProviderTest extends WebTestCase
 
         $app->get('/', function () use ($app) {
             $user = $app['security.token_storage']->getToken()->getUser();
-            $content = is_object($user) ? $user->getUsername() : 'ANONYMOUS';
+            $content = \is_object($user) ? $user->getUsername() : 'ANONYMOUS';
 
             if ($app['security.authorization_checker']->isGranted('IS_AUTHENTICATED_FULLY')) {
                 $content .= 'AUTHENTICATED';
@@ -486,7 +486,7 @@ class SecurityServiceProviderTest extends WebTestCase
             return $content;
         });
 
-        $app->get('/admin', function () use ($app) {
+        $app->get('/admin', function () {
             return 'admin';
         });
 
@@ -519,7 +519,7 @@ class SecurityServiceProviderTest extends WebTestCase
         $app->get('/', function () use ($app) {
             $user = $app['security.token_storage']->getToken()->getUser();
 
-            $content = is_object($user) ? $user->getUsername() : 'ANONYMOUS';
+            $content = \is_object($user) ? $user->getUsername() : 'ANONYMOUS';
 
             return $content;
         })->bind('homepage');
