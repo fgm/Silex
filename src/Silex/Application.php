@@ -503,4 +503,9 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
     {
         $this['kernel']->terminate($request, $response);
     }
+
+    public function has(string $id): bool
+    {
+        return isset($this[$id]);
+    }
 }
