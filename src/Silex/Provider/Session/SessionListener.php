@@ -26,12 +26,15 @@ class SessionListener extends BaseSessionListener
     public function __construct(Container $app)
     {
         $this->app = $app;
+        // 変更箇所：継承元クラスのcontainer変数にapp情報渡す（渡せていないの既存の段階でバグな気がする）
+        $this->container = $this->app;
     }
 
-    protected function getSession()
+    protected function getSession(): ?\Symfony\Component\HttpFoundation\Session\SessionInterface
     {
         if (!isset($this->app['session'])) {
-            return;
+            // 変更箇所：null渡さないといけない（呼び出し元的に多分これで良いはず？）
+            return null;
         }
 
         return $this->app['session'];
