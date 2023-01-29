@@ -75,12 +75,8 @@ class ExceptionListenerWrapper
         if ($callbackReflection->getNumberOfParameters() > 0) {
             $parameters = $callbackReflection->getParameters();
             $expectedException = $parameters[0];
-            $reflectedClass = $expectedException->getType() && !$expectedException->getType()->isBuiltin()
-                ? new ReflectionClass($expectedException->getType()->getName())
-                : null;
-
-            if (null !== $reflectedClass && !$reflectedClass->isInstance($exception)) {
-                return false;
+            if (($type = $expectedException->getType()) && !is_subclass_of($exception, $type->getName())) {
+              return false;
             }
         }
 
